@@ -1,0 +1,69 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          zookeeper
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Kafka Zookeper initscript
+### END INIT INFO
+
+# Author: Thomas Liebscher <thomas.liebscher@iconicfuture.com>
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="zookeeper"
+NAME=zookeeper
+DAEMON=<%= @kafka_dir %>/bin/zookeeper-server-start.sh
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+test -x $DAEMON || exit 0
+
+start_server() {
+  echo -n "Starting $DESC... "
+  /usr/local/sbin/start-stop-daemon --start --make-pidfile --pidfile $PIDFILE --startas $DAEMON -- "<%= @kafka_dir %>/config/zookeeper.properties"
+  echo "done."
+}
+
+stop_server() {
+  echo -n "Stopping $DESC... "
+  /usr/local/sbin/start-stop-daemon --stop --pidfile $PIDFILE --exec $DAEMON $DAEMON -- "<%= @kafka_dir %>/config/zookeeper.properties"
+  echo "done."
+}
+
+status_server() {
+  if [ "`ps -A -o command | grep [z]ookeeper`" != "" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+}
+
+rh_status_q() {
+  status_server >/dev/null 2>&1
+}
+
+case "$1" in
+start)
+  start_server
+  ;;
+stop)
+  stop_server
+  ;;
+restart)
+  stop_server
+  sleep 3
+  start_server
+  ;;
+status)
+  status_server
+  ;;
+*)
+  N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|status}" >&2
+  exit 1
+  ;;
+esac
+
+exit 0

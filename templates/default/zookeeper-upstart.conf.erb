@@ -1,0 +1,14 @@
+# Start the Kafka Zookeeper daemon
+author          "Mike Heffner <mike@librato.com>"
+#
+description     "Runs the Kafka Zookeeper daemon"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+# XXX: force the right Java
+env JAVA_HOME=<%= @java_home %>
+
+respawn
+
+exec <%= @kafka_dir %>/bin/zookeeper-server-start.sh <%= @kafka_dir %>/config/zookeeper.properties >> /var/log/kafka/zookeeper.log 2>&1
